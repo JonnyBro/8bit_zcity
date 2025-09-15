@@ -24,14 +24,10 @@ Both windows and linux builds are available with every commit. See the actions p
 
 `eightbit.EnableEffect(userid, number)` Sets whether to enable audio effect for a given userid. Takes an eightbit.EFF enum.
 
-`eightbit.SetGainFactor(number)` Sets the gain multiplier to apply to affected userids.
-
-`eightbit.SetCrushFactor(number)` Sets the bitcrush factor for the reference bitcrush implementation.
-
-`eightbit.SetDesampleRate(number)` Sets the desample multiplier, used by EFF_DESAMPLE.
+`eightbit.SetDamp1(number)` Sets the dampening rate (should be from 0 to 1) for the EFF_MASKVOICE effect
 
 `eightbit.EFF_NONE` No audio effect.
 
-`eightbit.EFF_DESAMPLE` Desamples audio, new frequency is 1/(1-1/n).
+`eightbit.EFF_MASKVOICE` Enables a simple lowpass filter
 
-`eightbit.EFF_BITCRUSH` Deep fries the audio. Governed by a gain factor and a quantization factor.
+`eightbit.EFF_REVERB` Enables a simple reverb filter
