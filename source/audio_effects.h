@@ -94,7 +94,7 @@ namespace AudioEffects {
 
     auto filter = CombFilter(1557, pow(0.001, 1557.0f / (1 * 24000)), 0.5);
 
-    std::map<int, double> filterStore; // multiple players speaking will cause problems, so do that
+    std::unordered_map<int, double> filterStore; // multiple players speaking will cause problems, so do that
     double damping2 = 0.95;
     
 	void VoiceInMask(uint16_t* sampleBuffer, int samples, int uid, double damping = damping2) {
