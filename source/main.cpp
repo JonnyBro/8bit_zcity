@@ -105,7 +105,7 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		int eff = std::get<1>(afflicted_players.at(uid));
 		switch (eff) {
 		case AudioEffects::EFF_MASKVOICE:
-			AudioEffects::VoiceInMask((uint16_t*)&decompressedBuffer, samples, g_eightbit->damp1);
+			AudioEffects::VoiceInMask((uint16_t*)&decompressedBuffer, samples, uid, g_eightbit->damp1);
 			break;
 		case AudioEffects::EFF_REVERB:
 			AudioEffects::Reverb((uint16_t*)&decompressedBuffer, samples);
