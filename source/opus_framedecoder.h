@@ -1,4 +1,5 @@
 #pragma once
+
 #include "opus.h"
 #include "ivoicecodec.h"
 #include <cstdint>
@@ -133,7 +134,7 @@ namespace SteamOpus {
                 if (seq < m_seq) {
                     opus_decoder_ctl(dec, OPUS_RESET_STATE);
                 } else if (seq > m_seq) {
-                    uint32_t lostFrames = std::min(seq - m_seq, 10);
+                    uint32_t lostFrames = (std::min)(seq - m_seq, 10);
 
                     for (uint32_t i = 0; i < lostFrames; i++) {
                         if (pUncompressedEnd - pUncompressed <= 0)

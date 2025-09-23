@@ -10,6 +10,8 @@ namespace AudioEffects {
 		EFF_NONE,
 		EFF_MASKVOICE,
         EFF_REVERB,
+        EFF_HIGHPASS,
+        EFF_PROOT,
 	};
 
     class DelayLine
@@ -94,29 +96,61 @@ namespace AudioEffects {
 
     auto filter = CombFilter(1557, pow(0.001, 1557.0f / (1 * 24000)), 0.5);
 
-    std::unordered_map<int, double> filterStore; // multiple players speaking will cause problems, so do that
-    double damping2 = 0.95;
-    
-	void VoiceInMask(uint16_t* sampleBuffer, int samples, int uid, double damping = damping2) {
-		for (int i = 0; i < samples; i++) {
-			double signedSample = static_cast<double>(static_cast<int16_t>(sampleBuffer[i]) - 32768); // samples ranging from -32768 to 32768
+    std::unordered_map<int, float> filterStore; // multiple players speaking will cause problems, so do that
+    float damping2 = 0.95;
+
+    void VoiceInMask(uint16_t* sampleBuffer, int samples, int uid, float damping = damping2) {
+        for (int i = 0; i < samples; i++) {
+            float signedSample = static_cast<float>(static_cast<int16_t>(sampleBuffer[i])); // samples ranging from -32768 to 32768
             //signedSample = (delayedSample * (1.0f - damping)) + (filterStore * damping);
             signedSample = (signedSample * (1.0f - damping)) + (filterStore[uid] * damping);
             filterStore[uid] = signedSample;
-			reinterpret_cast<uint16_t*>(sampleBuffer)[i] = static_cast<uint16_t>(signedSample + 32768);
+            sampleBuffer[i] = static_cast<uint16_t>(signedSample);
 
-			//if (i < 10)
-			//{
-			//	Msg((std::to_string(i) + " = " + std::to_string(sampleBuffer[i]) + " 2\n").c_str());
-			//}
-		}
-	}
+            //if (i < 10)
+            //{
+            //	Msg((std::to_string(i) + " = " + std::to_string(sampleBuffer[i]) + " 2\n").c_str());
+            //}
+        }
+    }
 
     void Reverb(uint16_t* sampleBuffer, int samples) {
         for (int i = 0; i < samples; i++) {
-            double signedSample = static_cast<double>(static_cast<int16_t>(sampleBuffer[i]) - 32768);
+            float signedSample = static_cast<float>(static_cast<int16_t>(sampleBuffer[i]));
             signedSample = filter.Process(signedSample);
-            reinterpret_cast<uint16_t*>(sampleBuffer)[i] = static_cast<uint16_t>(signedSample + 32768);
+            sampleBuffer[i] = static_cast<uint16_t>(signedSample);
+        }
+    }
+
+    std::unordered_map<int, float> prevSample;
+    std::unordered_map<int, float> prevOutput;
+
+    std::unordered_map<int, CombFilter> prootReverbsMap;
+
+    //auto prootReverb = CombFilter(600, pow(0.001, 512.0f / (0.2 * 24000)), 0.3);
+
+    void ProotFilter(uint16_t* sampleBuffer, int samples, int uid, float cutOff, float gain) {
+        auto& reverb = prootReverbsMap.try_emplace(uid, 600, pow(0.001, 512.0f / (0.2 * 24000)), 0.3).first->second;
+
+        for (int i = 0; i < samples; i++) {
+            float signedSample = static_cast<float>(static_cast<int16_t>(sampleBuffer[i])); // samples ranging from -32768 to 32768
+
+            if (signedSample > 0)
+            {
+                signedSample *= 0.2;
+            }
+
+            // Simple first-order high-pass filter
+            float output = cutOff * (prevOutput[uid] + signedSample - prevSample[uid]);
+
+            prevSample[uid] = signedSample;
+            prevOutput[uid] = output;
+
+            signedSample = (signedSample * 0.3) + (output * gain);
+
+            signedSample = reverb.Process(signedSample);
+
+            sampleBuffer[i] = static_cast<uint16_t>(signedSample);
         }
     }
 }

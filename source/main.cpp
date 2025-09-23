@@ -110,6 +110,9 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 		case AudioEffects::EFF_REVERB:
 			AudioEffects::Reverb((uint16_t*)&decompressedBuffer, samples);
 			break;
+		case AudioEffects::EFF_PROOT:
+			AudioEffects::ProotFilter((uint16_t*)&decompressedBuffer, samples, uid, g_eightbit->prootCutoff, g_eightbit->prootGain);
+			break;
 		default:
 			break;
 		}
@@ -135,6 +138,16 @@ void hook_BroadcastVoiceData(IClient* cl, uint nBytes, char* data, int64 xuid) {
 
 LUA_FUNCTION_STATIC(eightbit_damp1) {
 	g_eightbit->damp1 = LUA->GetNumber(1);
+	return 0;
+}
+
+LUA_FUNCTION_STATIC(eightbit_prootcutoff) {
+	g_eightbit->prootCutoff = LUA->GetNumber(1);
+	return 0;
+}
+
+LUA_FUNCTION_STATIC(eightbit_prootgain) {
+	g_eightbit->prootGain = LUA->GetNumber(1);
 	return 0;
 }
 
@@ -211,6 +224,14 @@ GMOD_MODULE_OPEN()
 		LUA->PushCFunction(eightbit_damp1);
 		LUA->SetTable(-3);
 
+		LUA->PushString("SetProotCutoff");
+		LUA->PushCFunction(eightbit_prootcutoff);
+		LUA->SetTable(-3);
+
+		LUA->PushString("SetProotGain");
+		LUA->PushCFunction(eightbit_prootgain);
+		LUA->SetTable(-3);
+
 		LUA->PushString("EnableEffect");
 		LUA->PushCFunction(eightbit_enableEffect);
 		LUA->SetTable(-3);
@@ -237,6 +258,10 @@ GMOD_MODULE_OPEN()
 
 		LUA->PushString("EFF_REVERB");
 		LUA->PushNumber(AudioEffects::EFF_REVERB);
+		LUA->SetTable(-3);
+
+		LUA->PushString("EFF_PROOT");
+		LUA->PushNumber(AudioEffects::EFF_PROOT);
 		LUA->SetTable(-3);
 	LUA->SetTable(-3);
 	LUA->Pop();
