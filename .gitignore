@@ -1,5 +1,3 @@
 projects/windows
 projects/linux
 /.vs
-/premake5.lua
-/create.bat
